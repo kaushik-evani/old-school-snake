@@ -1,20 +1,22 @@
 var canvas = document.getElementById('canvas');
 var ctx = canvas.getContext('2d');
 
-$('#controls-overlay').focus();
+$('body').focus();
 
 var background = 'white';
-var state = 'play';
+var state = 'pause';
 var gap = 1;
 var total = {
     w: 298,
     h: 298
 }
 var h = 10, w = 10;
-var speed = 50;
 var direction = 'right';
+var score = 0;
+
 var snake = {
-    color: 'green',
+    color: 'pink',
+    speed: 200,
     body: [{
         x: 1,
         y: 1,
@@ -29,7 +31,45 @@ snake.body.push({
     y: snake.body[1].y
 })
 
+var food = {
+    x: 0,
+    y: 0,
+    color: 'green',
+    past: []
+}
+
+function incrementScore(){
+    score += 10;
+    $('#score').text(score);
+    if(score % 50 == 0) {
+        snake.speed -= 25
+    }
+}
+
+function drawFood() {
+    food.x = getRandomCoord();
+    food.y = getRandomCoord();
+    var snake_map = []
+    for (var i = 0; i < snake.body.length; i++) {
+        snake_map.push('' + snake.body[i].x + snake.body[i].y)
+    }
+    var overlap = snake_map.filter(function (o) {
+        return o.indexOf('' + food.x + food.y) != -1;
+    })
+    if (overlap.length) {
+        drawFood();
+    } else {
+        ctx.fillStyle = food.color;
+        ctx.fillRect(food.x, food.y, w, h);
+        food.past.push('' + food.x + food.y);
+    }
+}
 // console.log(snake.body);
+
+function getRandomCoord() {
+    var coord = (Math.floor(Math.random() * (27 - 0))) * 11;
+    return coord + 1
+}
 
 function drawSnake() {
     for (var i = 0; i < snake.body.length; i++) {
@@ -37,15 +77,10 @@ function drawSnake() {
         ctx.fillRect(snake.body[i].x, snake.body[i].y, w, h);
     }
     if (state == 'play')
-        setTimeout(moveSnake, speed);
+        setTimeout(moveSnake, snake.speed);
 }
 
 function moveSnake() {
-
-    var tail = snake.body.pop();
-    ctx.fillStyle = background;
-    ctx.fillRect(tail.x, tail.y, w, h);
-
     /// based on direction change x or y
     var newx, newy;
     switch (direction) {
@@ -73,6 +108,15 @@ function moveSnake() {
         x: newx ? newx : snake.body[0].x,
         y: newy ? newy : snake.body[0].y
     })
+    // console.log(food.x, food.y);
+    if (snake.body[0].x == food.x && snake.body[0].y == food.y) {
+        incrementScore();
+        drawFood();
+    }else{
+        var tail = snake.body.pop();
+        ctx.fillStyle = background;
+        ctx.fillRect(tail.x, tail.y, w, h);
+    }
     drawSnake();
 }
 
@@ -98,6 +142,11 @@ function changeDirection(toDirection) {
         default:
             break;
     }
+    if (state != 'play') {
+        state = 'play';
+        moveSnake();
+    }
+
 }
 
 function pauseGame() {
@@ -112,10 +161,7 @@ function playGame() {
 }
 
 drawSnake();
-
-$('#rotate-clock-wise').click(function () {
-    changeDirection()
-})
+drawFood();
 
 $('#playpause').click(function () {
     if (state == 'play') {
@@ -126,7 +172,7 @@ $('#playpause').click(function () {
     }
 })
 
-$('#controls-overlay').bind('keydown', function (event) {
+$('body').bind('keydown', function (event) {
     //console.log(event.keyCode);
     switch (event.keyCode) {
         //....your actions for the keys .....
@@ -138,7 +184,26 @@ $('#controls-overlay').bind('keydown', function (event) {
             break;
         case 40: changeDirection('down');
             break;
+        case 32:
+            // space
+            if (state == 'play') {
+                pauseGame();
+            }
+            else {
+                playGame();
+            }
+            break;
         default: break;
     }
 });
 
+$('body').bind('keydown', function (event) {
+    event.preventDefault();
+});
+
+function changeSpeed(val) {
+    // console.log(val);
+    snake.speed = val;
+}
+
+// $('#speedControl').on('oninput', changeSpeed)

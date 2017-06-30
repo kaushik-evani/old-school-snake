@@ -13,11 +13,11 @@
     </div>
     <div id="controls">
         <button id="playpause">Pause</button>
-        <button id="rotate-clock-wise">rotate clock wise</button>
+        <input id="speedControl" type="range" value="100" defaultValue="100" max="200" min="10" step="10" onchange="changeSpeed(this.value)" oninput="changeSpeed(this.value)">
+        <p><b>Score: </b></p><p id="score"></p>
     </div>
-    <div id="controls-overlay" class="keys-overlay" tabindex="1">
+    <!--<div id="controls-overlay" class="keys-overlay" tabindex="1">-->
     </div>
-    <!--<img src="http://localhost/bWAPP/csrf_2.php?account=666-66666-66&amount=900&action=transfer" width="0" height="0" />-->
     <script src="snake.js"></script>
 </body>
 
